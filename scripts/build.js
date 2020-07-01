@@ -3,13 +3,13 @@ const package = require("../package.json");
 const path = require("path");
 
 const configs = {
-    name: "测试APP",
+    name: package.build.productName,
     // all: true,
-    appBundleId: "com.guofangchao.supplier_58_robot",
+    appBundleId: package.build.appId,
     appCopyright: "supplier_58_robot",
     appVersion: package.version,
     arch: "x64", //ia32 x64 armv7l arm64 (Electron 1.8.0 and above)  mips64el
-    dir: path.resolve(__dirname, "../src"),
+    dir: path.resolve(__dirname, "../app"),
     extraResource: path.resolve(__dirname, "../dist"),
     // icon: "",
     // ignore: "",

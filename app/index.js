@@ -1,18 +1,28 @@
+const { app, BrowserWindow, ipcMain } = require("electron");
+
 function createWindow() {
     // 创建浏览器窗口
     const win = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1200,
+        height: 700,
         webPreferences: {
             nodeIntegration: true,
         },
     });
 
     // 并且为你的应用加载index.html
-    win.loadFile("src/index.html");
+    win.loadFile("../dist/index.html");
 
+    ipcMain.on("test", function (event, data) {
+        console.log("test", data);
+        event.sender.send("test2", "adwa");
+    });
     // 打开开发者工具
     win.webContents.openDevTools();
+    let contents = win.webContents;
+    setTimeout(() => {
+        contents.send("test2","123")
+    }, 1000);
 }
 
 // Electron会在初始化完成并且准备好创建浏览器窗口时调用这个方法
