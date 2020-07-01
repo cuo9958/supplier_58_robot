@@ -1,5 +1,8 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
+const axios = require("axios");
 
+let contents = null;
+let Cookie = "";
 function createWindow() {
     // 创建浏览器窗口
     const win = new BrowserWindow({
@@ -13,16 +16,9 @@ function createWindow() {
     // 并且为你的应用加载index.html
     win.loadFile("../dist/index.html");
 
-    ipcMain.on("test", function (event, data) {
-        console.log("test", data);
-        event.sender.send("test2", "adwa");
-    });
     // 打开开发者工具
     win.webContents.openDevTools();
-    let contents = win.webContents;
-    setTimeout(() => {
-        contents.send("test2","123")
-    }, 1000);
+    contents = win.webContents;
 }
 
 // Electron会在初始化完成并且准备好创建浏览器窗口时调用这个方法
@@ -45,3 +41,37 @@ app.on("activate", () => {
         createWindow();
     }
 });
+/**
+ * 获取网页
+ * @param {*} url url
+ */
+function getHtml(url) {
+    return axios({
+        url: url,
+        method: "get",
+        headers: {
+            Referer: "http://gys.1zu.com/cleaningWeek/initListCleaningWeekPlanItem.htm?source=init",
+            Cookie,
+        },
+    });
+}
+
+//     contents.send("test2", "123");
+// event.sender.send("test2", "adwa");
+
+ipcMain.on("isLogin", isLogin);
+//是否登录
+async function isLogin(event, data) {
+    const res = await getHtml("http://gys.1zu.com/admin/login.htm");
+    if (res.status !== 200) {
+        console.log("接口失败");
+        return;
+    }
+    const html = res.data;
+    if (html.indexOf("立即登录") > 0) {
+        console.log("需要登录");
+        contents.send("login");
+    } else {
+        contents.send("show");
+    }
+}
