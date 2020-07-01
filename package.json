@@ -1,0 +1,29 @@
+{
+    "name": "supplier_58_robot",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "dev": "node src/index.js",
+        "build": "node scripts/build.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cuo9958/supplier_58_robot.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/cuo9958/supplier_58_robot/issues"
+    },
+    "homepage": "https://github.com/cuo9958/supplier_58_robot#readme",
+    "dependencies": {
+        "axios": "^0.19.2",
+        "cheerio": "^1.0.0-rc.3"
+    },
+    "devDependencies": {
+        "electron": "^9.0.5",
+        "electron-packager": "^15.0.0"
+    }
+}
