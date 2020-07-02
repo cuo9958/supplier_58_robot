@@ -1,11 +1,26 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, session } = require("electron");
 const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+const Store = require("electron-store");
+const web = require("./web");
+const cheerio = require("cheerio");
+
+const Cache = new Store({
+    name: "supplier_58_robot",
+});
 
 let contents = null;
-let Cookie = "";
-function createWindow() {
+let Cookies = {};
+let win = null;
+async function createWindow() {
+    const cookies = Cache.get("cookies", "");
+    cookies.split(";").forEach((item) => {
+        const list = item.split("=");
+        Cookies[list[0]] = list[1];
+    });
     // 创建浏览器窗口
-    const win = new BrowserWindow({
+    win = new BrowserWindow({
         width: 1200,
         height: 700,
         webPreferences: {
@@ -13,33 +28,43 @@ function createWindow() {
         },
     });
 
-    // 并且为你的应用加载index.html
-    win.loadFile("../dist/index.html");
+    const isload = isLogin();
 
-    // 打开开发者工具
-    win.webContents.openDevTools();
+    if (isload) {
+        web.openHome(win);
+    } else {
+        web.openLogin(win);
+    }
     contents = win.webContents;
+
+    contents.on("did-finish-load", function (e) {
+        const url = e.sender.history[e.sender.currentIndex];
+        console.log("did-finish-load", url);
+        if (url.indexOf("http") === 0) {
+            const js = fs.readFileSync(path.join(__dirname, "../dist/js/main.js")).toString();
+            contents.executeJavaScript(js);
+        }
+    });
 }
 
-// Electron会在初始化完成并且准备好创建浏览器窗口时调用这个方法
-// 部分 API 在 ready 事件触发后才能使用。
 app.whenReady().then(createWindow);
 
 //当所有窗口都被关闭后退出
 app.on("window-all-closed", () => {
-    // 在 macOS 上，除非用户用 Cmd + Q 确定地退出，
-    // 否则绝大部分应用及其菜单栏会保持激活。
     if (process.platform !== "darwin") {
         app.quit();
     }
 });
-
 app.on("activate", () => {
-    // 在macOS上，当单击dock图标并且没有其他窗口打开时，
-    // 通常在应用程序中重新创建一个窗口。
     if (BrowserWindow.getAllWindows().length === 0) {
         createWindow();
     }
+});
+app.on("ready", function () {
+    session.defaultSession.cookies.addListener("changed", function (e, d) {
+        console.log(d);
+        Cookies[d.name] = d.value;
+    });
 });
 /**
  * 获取网页
@@ -51,27 +76,63 @@ function getHtml(url) {
         method: "get",
         headers: {
             Referer: "http://gys.1zu.com/cleaningWeek/initListCleaningWeekPlanItem.htm?source=init",
-            Cookie,
+            Cookie: getCookies(),
         },
     });
+}
+
+function getCookies() {
+    let cookie = "";
+    for (const key in Cookies) {
+        cookie += `${key}=${Cookies[key]};`;
+    }
+    return cookie;
 }
 
 //     contents.send("test2", "123");
 // event.sender.send("test2", "adwa");
 
-ipcMain.on("isLogin", isLogin);
 //是否登录
-async function isLogin(event, data) {
+async function isLogin() {
     const res = await getHtml("http://gys.1zu.com/admin/login.htm");
     if (res.status !== 200) {
         console.log("接口失败");
-        return;
+        return false;
     }
     const html = res.data;
     if (html.indexOf("立即登录") > 0) {
         console.log("需要登录");
-        contents.send("login");
+        Cache.set("cookies", "");
+        return false;
     } else {
-        contents.send("show");
+        Cache.set("cookies", getCookies());
+        return true;
     }
+}
+
+ipcMain.on("logout", logout);
+function logout(event) {
+    web.openLogin(win);
+}
+
+ipcMain.on("upload1", upload1);
+async function upload1(e, path, params) {
+    console.log(path, params);
+    //
+    const res = await getHtml("http://gys.1zu.com/cleaningWeek/listCleaningWeekPlanItem.htm?" + params + "&currentPage=1&pageSize=10");
+
+    const $ = cheerio.load(res.data);
+    const pagecount = $(".searchPage .allPage").text();
+    if (pagecount > 10) {
+        contents.send("toast", "下载的太多了:" + pagecount);
+        return;
+    }
+    console.log("总x页", pagecount);
+    console.log($(".searchPage .page-sum").text());
+    contents.send("download", 1, pagecount);
+    const table = $("#tableSort tr");
+    table.each((item) => {
+        const td1 = $("td", item).eq(0).text();
+        console.log(item, td1, table[item]);
+    });
 }
