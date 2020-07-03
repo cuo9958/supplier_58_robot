@@ -1,6 +1,7 @@
 const Router = require("koa-router");
 const axios = require("axios");
 const TaskReduce = require("./task");
+const WebSearch = require("./web_search");
 
 const routers = new Router();
 
@@ -16,21 +17,10 @@ function getHtml(url) {
 }
 //是否登录
 routers.get("/islogin", async function (ctx) {
-    const res = await getHtml("http://gys.1zu.com/admin/login.htm");
-    if (res.status !== 200) {
-        console.log("接口失败");
-        return false;
-    }
-    const html = res.data;
-    if (html.indexOf("立即登录") > 0) {
-        console.log("需要登录");
-        return false;
-    } else {
-        return true;
-    }
-
+    const data = await WebSearch.isLogin();
     ctx.body = {
         code: 1,
+        data,
     };
 });
 //创建下载任务
@@ -41,5 +31,10 @@ routers.post("/create", function (ctx) {
     };
 });
 //获取任务详情
-
+routers.get("/task", function (ctx) {
+    TaskReduce.createTask(1);
+    ctx.body = {
+        code: 1,
+    };
+});
 module.exports = routers.routes();

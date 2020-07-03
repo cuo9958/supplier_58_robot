@@ -161,8 +161,18 @@ async function getDetail2(clnOrderId = "") {
         daka,
     };
 }
+async function isLogin() {
+    const res = await getHtml("http://gys.1zu.com/admin/login.htm");
+    const html = res.data;
+    if (html.indexOf("立即登录") > 0) {
+        return false;
+    } else {
+        return true;
+    }
+}
 //1022000000
 module.exports = {
+    isLogin,
     setCookie(data) {
         cookie = data;
         fs.writeFileSync(cookie_path, cookie);
