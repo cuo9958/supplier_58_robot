@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>供应商保洁单列表</title>
+<title>供应商保洁单详情</title>
 <meta http-equiv="x-ua-compatible" content="no-store">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <link rel="stylesheet" type="text/css" href="http://gys.1zu.com/css/ams_controls.css?t=1.css" media="all"/>
@@ -20,15 +20,13 @@
             <link rel="stylesheet" type="text/css" href="http://gys.1zu.com/css/o2o_controls.css?t=1.css">
     <script type="text/javascript" src="http://gys.1zu.com/scripts/o2o_util.js?t=1.js"></script>
         
-        <link rel="stylesheet" type="text/css" href="http://gys.1zu.com/css/ui.daterangepicker.css"/>
-    <link rel="stylesheet" type="text/css" href="http://gys.1zu.com/css/jquery-ui-1.7.1.custom.css"/>
 
-        <script src="http://gys.1zu.com/scripts/daterangepicker.jQuery.js" type="text/javascript"
+
+
+        <link rel="stylesheet" type="text/css"
+          href="http://gys.1zu.com/scripts/jquery/themes/base/jquery-ui-1.8.0.css?t=1.css" media="all"/>
+    <script type="text/javascript" src="http://gys.1zu.com/scripts/jquery/ui/jquery-ui.min.js?t=1.js"
             charset="utf-8"></script>
-    <script src="http://gys.1zu.com/scripts/jquery-ui-1.7.1.custom.min.js" type="text/javascript"
-            charset="utf-8"></script>
-
-
     
     <script>
 
@@ -110,28 +108,86 @@
 
 
 
-
-
+<link rel="stylesheet" type="text/css" href="http://gys.1zu.com/scripts/clean/skin/jedate.css?t=1.css"  />
+<script src="http://gys.1zu.com/scripts/dateformat.js" type="text/javascript"></script>
+<script src="http://gys.1zu.com/scripts/clean/jquery.jedate.js?t=1.js" type="text/javascript" ></script>
 <script type="text/javascript">
+
+$(function () {
+    $('#clnDealTimeStart').jeDate({
+        format: 'YYYY-MM-DD hh:mm',
+        maxDate:'',
+        type: 'start',
+        okfun: function(obj){
+            //需求22942-保洁相关需求修改  2019-06-12 start
+            if(obj && obj.val){
+               var date1 = new Date(new Date(obj.val).getTime() + 1000*60*60);
+               var year = date1.getFullYear();
+               var month = date1.getMonth()+1;
+               month = month<10?'0'+month:month;
+               var day = date1.getDate()<10?'0'+date1.getDate():date1.getDate();
+               var hours = date1.getHours()<10?'0'+date1.getHours():date1.getHours();
+               var minutes = date1.getMinutes()<10?'0'+date1.getMinutes():date1.getMinutes();
+               var endTime = year+"-"+month+"-"+day+" "+hours+":"+minutes;
+               $("#clnDealTimeEnd").val(endTime);
+            }else{
+               $("#clnDealTimeEnd").val("");
+            }
+            //需求22942-保洁相关需求修改  2019-06-12 end
+        }   
+    })
+}); 
+
 $().ready(function () {
-    $('input[rel=doubledate]').daterangepicker();
+    // 派单
+    $("#sendCleaningOrder").click(function() {
+        $(this).hide();
+        $("#confirmCleaningOrder").show();
+        $("#cleanResult").show();
+        if('' != 'false') {
+            $("#expectedDoorTime").hide();
+            $("#expectedDoorTimeInput").show();
+        }
+    });
     
-    // 我知道了
-    $("#iknow").click(function() {
+    // 确认
+    $("#confirmCleaningOrder").click(function() {
+        showWaiting();
+        // 获取上门时间
+        var clnDealTimeStart = $("#clnDealTimeStart").val();
+        var clnDealTimeEnd = $("#clnDealTimeEnd").val();
+        if(!clnDealTimeStart || !clnDealTimeEnd) {
+            alert("请选择预计上门时间！");closeWaiting();
+            return;
+        }
+        if(clnDealTimeStart > clnDealTimeEnd){
+            alert("预计上门开始时间不能大于结束时间！");closeWaiting();
+            return;
+        }
+        // 获取保洁人员
+        var cleanWorker = $("#cleanWorker option:selected").val();
+        if(cleanWorker == '' || cleanWorker == null) {
+            alert("请选择保洁人员！");closeWaiting();
+            return ;
+        }
         jQuery.ajax({
             type:"POST",
-            url:"http://gys.1zu.com/cleaningWeek/iknowCleaningWeekPlanItem.htm",
+            url:"http://gys.1zu.com/commonCleaning/sendCommonCleaning.htm",
             data: {
-                "itemCode" : $(this).attr("itemCode")
+                "itemCode" : 'BJ01598249',
+                "onDoorStartTime" : clnDealTimeStart ,
+                "onDoorEndTime" : clnDealTimeEnd,
+                "cleanWorker" : cleanWorker,
+                "cleanWorkerName": $("#cleanWorker").find("option:selected").text()
             },
             dataType :'json',
             success:function(data){
                 if(data.success == true) {
-                    alert("操作成功！");
+                    alert("派单成功！");
                     // 跳转至待派单列表
                     window.location.reload();
                 }else {
-                    alert(result.error);
+                    alert(data.error);
                     window.location.reload();
                 }
             },
@@ -144,1050 +200,515 @@ $().ready(function () {
     });
 });
 
+function createSendRequest(itemCode ,onDoorStartTime ,onDoorEndTime ,cleanWorker) {
+    this.itemCode = itemCode;
+    this.onDoorStartTime = onDoorStartTime;
+    this.onDoorEndTime = onDoorEndTime;
+    this.cleanWorker = cleanWorker;
+}
+
 function formValidate() {
     $('#myForm').trigger('submit')
 }
 
-// 列表清空
-function cleanForm() {
-    cleanAll('myForm');
-    formValidate();
+function show(){
+    var target = document.getElementById("sonWindowDiv");
+    target.style.display="block";
 }
 
+function closediv(){
+    var target = document.getElementById("sonWindowDiv");
+    target.style.display="none";
+    $("#contractId").val("");
+}
+
+/**验证输入框是否非法字符  是非法字符 则返回true
+26203 【需求】点击退回，退回原因为其他，备注有特殊符号@*&时点击提交，无任何响应  zjshao 2019-09-11 start
+**/
+
+function checkRemark(newName){
+
+    var regEn = new RegExp("[`~@#$^&*=|{}\\[\\]<>/@#￥&*——|{}【】]");
+    
+    if(regEn.test(newName)) {
+        return true;
+    }
+
+    return false;
+
+}
+/**验证输入框是否非法字符  是非法字符 则返回true
+26203 【需求】点击退回，退回原因为其他，备注有特殊符号@*&时点击提交，无任何响应  zjshao 2019-09-11 end
+**/
+
+//退回  25175 【需求】日常保洁增加供应商平台退回功能  zjshao 2019-08-28 start
+$(function () {
+    $("#exitBtn").click(function () {
+    $("#dialog").dialog({
+                height: 500,
+                width: 600,
+                modal: true,
+                buttons: {
+                    "确定": function () {
+                        //退回原因
+                        var checkText = $("#backReason").find("option:selected").text();
+                        //备注
+                        var remarkeText=$("#remarkeArea").val();
+                        
+                        if (checkText == undefined || checkText == "" || checkText == "请选择") {
+                            alert("请选择原因!");
+                        }else if (checkText == "其他" && remarkeText==""){
+                            alert("请添加备注!");
+                        }else if (checkRemark(remarkeText)){ //26203 【需求】点击退回，退回原因为其他，备注有特殊符号@*&时点击提交，无任何响应  zjshao
+                            alert("您输入了非法字符，请重新输入");
+                        }else{
+                        
+                            var orderId=$("#orderId").val();
+                            //debugger;
+                            jQuery.ajax({
+                                    type:"POST",
+                                    url:"http://gys.1zu.com/commonCleaning/backCleanOrder.htm",
+                                    data: {"order": orderId ,"backReason":checkText,"remarkeArea":remarkeText},
+                                    dataType :'json',
+                                    async: false,
+                                    success:function(data){
+                                    
+                                        if(data.success == true) {
+                                            alert("退回成功!");
+                                            //**********bug26196 对应人:zhanghaiwei 2019-09-11 start***********/
+                                            if(window.parent.document.getElementById("B_WORKORDER_MA_4704_CLEANING_LIST_content")){
+                                                window.parent.document.getElementById("B_WORKORDER_MA_4704_CLEANING_LIST_content").contentWindow.location.reload();
+                                            }
+                                            if(window.parent.document.getElementById("B_USER_TASK_MA_3007_DPGRCLIST_content")){
+                                                window.parent.document.getElementById("B_USER_TASK_MA_3007_DPGRCLIST_content").contentWindow.location.reload();
+                                            }
+                                            //**********bug26196 对应人:zhanghaiwei 2019-09-11 end***********/
+                                            window.parent.document.getElementsByClassName("indexCurrent")[0].getElementsByTagName("span")[0].click();
+                                        }else {
+                                            alert("退回失败,"+ data.error);
+                                            
+                                            windows.location.reload();
+                                        }
+                                    },
+                                    error:function (XMLHttpRequest, textStatus, errorThrown){
+                                    
+                                        console.log(textStatus +"," +errorThrown);
+                                        alert("查询异常!");
+                                        
+                                    }
+                            });
+                            
+                        }
+                    
+                    },"取消": function () {
+                        $(this).dialog('close');
+                    }
+                }
+        });
+    
+    });
+
+//退回  25175 【需求】日常保洁增加供应商平台退回功能  zjshao 2019-08-28 end
+
+
+});
+
 </script>
+
+<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<link href="http://gys.1zu.com/styles/magnify/jquery.magnify.css?t=1.css" rel="stylesheet"></link>
+
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="http://gys.1zu.com/scripts/magnify/jquery.magnify.js?t=1.js"></script>
+<style>
+a{
+    text-decoration:none;
+    color: #337ab7;
+}
+.zhezhao {
+width: 100%;
+position: fixed;
+opacity: 1;
+background: rgba(0, 0, 0, .6);
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+z-index: 888;
+}
+.content {
+opacity: 1;
+background: #FFF;
+width: 80%;
+height: 80%;
+border-radius: 20px;
+margin: auto;
+position: fixed;
+z-index: 999;
+top: 10%;
+left: 10%;
+text-align: center;
+overflow: hidden;
+}
+</style>
 <p class="curPosition">
 <i></i>当前位置：
-<span  id="curPosition">保洁工单列表</span>
+<span  id="curPosition">保洁单详情</span>
 </p>
-
-
-<div class="mian-content">
-<form id="myForm" class="form" name="myForm" method="get" onsubmit ="showWaiting()"  action="http://gys.1zu.com/cleaningWeek/listCleaningWeekPlanItem.htm?source=query">
-    <table>
+<div class="detaWrap deShow">
+<div class="dePart">
+    <div class="dePtitle">
+        <h3>房源信息</h3>
+        <b class="deFold"></b>
+        <input type="hidden" id="pageSource" value="commonClean" />
+    </div>
+    <table class="deTable">
         <tr>
-            <td style="display: none;">
-                                                    <input class="formInput"  type="hidden" id="dbType" value="" name="dbType" maxlength="20"/>
+            <td>
+                <h4>房源编号：</h4>
+                <h5>
+                    FY0034945408
+                </h5>
+            </td>
+            <!-- 20860-【需求】日常保洁增加“合同编号”“保洁预估费用”“”备注‘信息展示  2019-04-11 start -->
+            <td>
+                <h4>合同编号：</h4>
+                <h5>
+                    AFWT10181661ZY
+                </h5>
+            </td>
+            <!-- 20860-【需求】日常保洁增加“合同编号”“保洁预估费用”“”备注‘信息展示  2019-04-11 end -->
+            <td>
+            <!-- 20486 【需求】日常保洁，保洁套餐为“整套空气治理等时，房源地址显示修改 chong.cheng 2019-04-11 start -->
+            <!-- bug29213 zhhw.modify 2019-12-06 -->
+                                <h4>房源地址：</h4>
+                <h5>
+                   瑞旗家园16号楼1单元1401号房
+                </h5>
+                            <!-- 20486 【需求】日常保洁，保洁套餐为“整套空气治理等时，房源地址显示修改 chong.cheng 2019-04-11 end -->	
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <h4>小区名称：</h4>
+                <h5>
+                    瑞旗家园
+                </h5>
             </td>
             <td>
-                <span>保洁工单编号：</span>
-                <div class="inputWrap">
-                                                    <input class="formInput"  type="text" id="orderCode" value="" name="orderCode" maxlength="20"/>
-                </div>
+                <!-- // *******************【需求：24371】cuizhixuan.add start 2019-7-23 ******************** // -->
+                <h4>经纪人：</h4><!--bug31403 zhanghaiwei.modify 2020-03-07 -->
+                <h5>柳林清(18510673711)</h5>
+                <!-- // *******************【需求：24371】cuizhixuan.add  end  2019-7-23 ******************** // -->
             </td>
             <td>
-                <span>房源编号：</span>
-                <div class="inputWrap">
-                                                    <input class="formInput"  type="text" id="houseCode" value="" name="houseCode" maxlength="20"/>
-                </div>
-            </td>
-            <td>
-                <span>保洁工单状态：</span>
-                <div class="inputWrap">
-                                                    <select class="formSelect joint"  name="status" id="status">
-                        <option value="">请选择</option>
-                                                        <option value="1003400020001"
-                                                                >待派工</option>
-                                                        <option value="1003400020002"
-                                                                >待上门</option>
-                                                        <option value="1003400020003"
-                                                                >保洁中</option>
-                                                        <option value="1003400020004"
-                                                                >保洁完成</option>
-                                                        <option value="1003400020005"
-                                                                >已取消</option>
-                                                </select>
-                </div>
+                <h4>是否安装智能锁：</h4>
+                <h5>否</h5>
             </td>
         </tr>
         <tr>
             <td>
-                <span>保洁人员：</span>
-                <div class="inputWrap">
-                                                    <input class="formInput"  type="text" id="cleaningWorkerName" value="" name="cleaningWorkerName" maxlength="20"/>
-                </div>
+                <h4>房屋面积：</h4>
+                <h5>90</h5>
+            </td>
+            <td>
+                <h4>区域经理：</h4><!--bug31403 zhanghaiwei.modify 2020-03-07 -->
+                <h5>许光甫(17161074777)</h5>
+            </td>
+            <td></td>
+        </tr>
+    </table>
+</div>
+</div>
+
+<div class="detaWrap deShow">
+<div class="dePart">
+    <div class="dePtitle">
+        <h3>保洁单信息</h3>
+        <b class="deFold"></b>
+    </div>
+    <table class="deTable">
+        <tr>
+            <td>
+                <h4>保洁单编号：</h4>
+                <h5>
+                    <input type="hidden" value="BJ01598249" name="orderId" id="orderId" />
+                    BJ01598249
+                </h5>
+            </td>
+            <td>
+                <h4>保洁类型：</h4>
+                <h5>深度保洁</h5>
+            </td>
+            <td>
+                <h4>保洁预估费用：</h4>
+                <!--【bug29555】价格格式不规范 add by zjshao  start-->
+                <h5>￥171.00</h5>
+                <!--【bug29555】价格格式不规范 add by zjshao  start-->
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <h4>录入人：</h4>
+                <h5>
+                    柳林清
+                </h5>
+            </td>
+            <td>
+                <h4>录入时间：</h4>
+                <h5>
+                    2020-07-02 16:16
+                </h5>
+            </td>
+            <td>
+                <h4>保洁单状态：</h4>
+                <h5>
+                                                待上门
+                                        </h5>
+            </td>
+        </tr>			
+        <tr>
+            <td>
+                <h4>期望上门时间：</h4>
+                <h5>
+                    2020-07-03 00:00-2020-07-03 00:00
+                </h5>
+            </td>
+            <td>
+                <h4>上门联系人：</h4>
+                <h5>
+                    柳
+                </h5>
+            </td>
+            <td>
+                <h4>上门联系电话：</h4>
+                <h5>
+                    18510673711
+                </h5>
+            </td>
+        </tr>
+        <tr>
+            <td style="display: none;" id="expectedDoorTimeInput">
+                <h4>预计上门时间：</h4>
+                <h5>
+                    <!--【bug 29366】  update by zjshao start-->
+                    <input style="margin-top:-6px !important" class="formTimeInput" value="2020-07-04 08:00" type="text" id="clnDealTimeStart" readonly="readonly" name=""/>
+                    至
+                    <input style="margin-top:-6px !important" class="formTimeInput" value="2020-07-04 09:00"   type="text" id="clnDealTimeEnd"   readonly="readonly" name=""/>
+                    <!--【bug 29366】  update by zjshao end-->
+                </h5>
+            </td>
+            <td id="expectedDoorTime">
+                <h4>预计上门时间：</h4>
+                <h5>
+                    2020-07-04 08:00-2020-07-04 09:00
+                </h5>
+            </td>
+            <td>
+                <h4>上门打卡时间：</h4>
+                <h5 >
+                    
+                </h5>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <h4>备注：</h4>
+                <h5></h5>
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+</div>
+</div>
+<div id="cleanResult"
+        style="display: none;" 
+ class="detaWrap deShow">
+<div class="dePart">
+    <div class="dePtitle">
+        <h3>结果信息</h3>
+        <b class="deFold"></b>
+    </div>
+    <table class="deTable">
+        <tr>
+            <td>
+                <h4>保洁人员：</h4>
+                                        <h5>
+                        <select style="height: 23px;width: 93px;" id="cleanWorker" class="select-root">
+                            <option value="">请选择</option>
+                                                                <option value="1022000022">尹春晓</option>
+                                                                <option value="1022000021">路桂菊</option>
+                                                                <option value="1022000046">王彦敏</option>
+                                                                <option value="1022000028">刘保国</option>
+                                                                <option value="1022000045">吴桂容</option>
+                                                                <option value="1022000035">李玉红</option>
+                                                                <option value="1022000040">王菊红</option>
+                                                                <option value="1022000002">郭香茹</option>
+                                                                <option value="1022000017">王海艳</option>
+                                                                <option value="1022000033">赵艳霞</option>
+                                                                <option value="1022000038">杨建英</option>
+                                                                <option value="1022000023">王春丽</option>
+                                                                <option value="1022000042">温建华</option>
+                                                                <option value="1022000041">张惠萍</option>
+                                                                <option value="1022000043">何明燕</option>
+                                                                <option value="1022000024">张祥财</option>
+                                                                <option value="1022000003">姚雪霜</option>
+                                                                <option value="1022000037">陈玉萍</option>
+                                                                <option value="1022000020">刘凡贵</option>
+                                                                <option value="1022000039">赵彩荣</option>
+                                                                <option value="1022000001">梁凤金</option>
+                                                                <option value="1022000032">张晓红</option>
+                                                                <option value="1022000030">王爱叶</option>
+                                                                <option value="1022000044">宋俊静</option>
+                                                                <option value="1022000031">李文华</option>
+                                                                <option value="1022000034">杨恩宇</option>
+                                                                <option value="1022000014">王丽</option>
+                                                                <option value="1022000004">赵彦波</option>
+                                                        </select>
+                    </h5>
+                                </td>
+            <td>
+                <h4>保洁完成时间：</h4>
+                <h5>
+                   
+                </h5>
             </td>
 
             <td>
-                <span>
-                                                    <select class="formSelect joint"  name="timeType" id="timeType">
-                        <option value="1"
-                                                                selected
-                                                        >预计保洁日期</option>
-                        <option value="2"
-                                                        >预计上门时间</option>
-                        <option value="3"
-                                                        >保洁完成时间</option>
-                    </select>
-                </span>
-                <div class="inputWrap">
-                    <input type="text" class="formInput"
-                           rel="doubledate" dateStart='' dateEnd='' id="planCreateTime"
-                           beginName="queryStartTime" endName="queryEndTime"/>
-                </div>
-            </td>
-            
-            <td>
-                <span>小区名称：</span>
-                <div class="inputWrap">
-                                                    <input class="formInput"  type="text" id="projectName" value="" name="projectName" maxlength="20"/>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <!---【需求-22942】保洁调整  chong.cheng 2019-06-20 start -->
-            <td>
-                <span>是否为智能锁房源：</span>
-                <div class="inputWrap">
-                                                    <select class="formSelect joint"  name="isSmartLock" id="isSmartLock">
-                        <option value="">请选择</option>
-                        <option value="Y"
-                                                        >是</option>
-                        <option value="N"
-                                                        >否</option>
-                    </select>
-                </div>
-            </td>
-            <td>
-                <span>上门打卡时间：</span>
-                <div class="inputWrap">
-                    <input type="text" class="formInput"
-                           rel="doubledate" dateStart='' dateEnd='' id="onDoorTime"
-                           beginName="onDoorStartTime" endName="onDoorEndTime"/>
-                </div>
-            </td>					       		
-            <!---【需求-22942】保洁调整  chong.cheng 2019-06-20 end -->	
-            <td>
-                <span>是否为返工单：</span>
-                <div class="inputWrap">
-                                                    <select class="formSelect joint"  name="isRework" id="isRework">
-                        <option value="">请选择</option>
-                        <option value="1"
-                                                        >是</option>
-                        <option value="0"
-                                                        >否</option>
-                    </select>
-                </div>
+                <h4>保洁费用：</h4>
+                <h5>
+                    <!--【bug29555】价格格式不规范 add by zjshao  start-->
+                    ￥0.00
+                    <!--【bug29555】价格格式不规范 add by zjshao  end-->
+                </h5>
             </td>
         </tr>
         <tr>
             <td>
+                <h4>是否已收取现金：</h4>
+                <h5>
+                    
+                </h5>
             </td>
-            <td colspan="2">
-                <div class="butQuery">
-                                                <input type="button" value="查询" class="PurBackground" onclick="return formValidate()"/>
-                                                                        
-                        <input type="button"  value="清 空"  class="greyBackground"onclick="cleanForm()" />
-                                         </div>
+        </tr>
+        <!-- 19580-【需求-保洁app】日常保洁、双周保洁保洁单详情页面可上传保洁前照片  chong.cheng 2019-03-14 start -->
+        <tr>
+            <td>
+                <h4>保洁前图片：</h4>
+                <h5>
+                                        </h5>
+            </td>
+        </tr>
+        <!-- 19580-【需求-保洁app】日常保洁、双周保洁保洁单详情页面可上传保洁前照片  chong.cheng 2019-03-14 end -->
+        <tr>
+            <td>
+                <h4>保洁后图片：</h4>
+                <h5>
+                                        </h5>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <h4>签收联：</h4>
+                <h5>
+                                        </h5>
             </td>
         </tr>
     </table>
-</form>
 </div>
-
-<div id="chenkbox" style="padding: 0 0;">
-<div class="changePage">
-        
-<script type="text/javascript">
-_data = jQuery.trim("");
-_form = jQuery.trim("myForm");
-_action = jQuery.trim("");
-_expression = jQuery.trim("");
-</script>
-<div id="_page" class="pages" style="float:right">
-    <div class="entry">
-                <span>每页显示条数</span>
-               <select id="_page_size" value="20"  class="page_select" name = "" title="选择每页显示条数">
-                                        <option value="10" >10</option>
-                                        <option value="20"  selected >20</option>
-                                        <option value="30" >30</option>
-                                        <option value="50" >50</option>
-                                                    </select>
-            </div>
-     <div id="Pagination"></div>
-     <div class="searchPage">
-                <span class="page-sum">共<strong class="allPage">599</strong>页</span> 11969 条
-                <span class="page-go">跳转
-                    <input type="text"  id = "_go_page"  type="text" class="keuInput _go_page"
-                                        onkeyup="this.value=this.value.replace(/\D|^0/g,''); if(this.value < 1){ this.value = 1; } if(this.value > 599){ this.value = 599; }"
-                                        onafterpaste="this.value=this.value.replace(/\D|^0/g,'')"
-                                        value="1"
-                                        size="2" title="输入页码按回车" maxlength="4" >页</span>
-
-                <a href="javascript:void(0);" class="page-btn">GO</a>
-            </div>
 </div>
-<script src="http://gys.1zu.com/scripts/page.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-$(function(){
-    $("#Pagination").pagination("599",{
-    current_page:1-1,link_form:_form}
- );
-
+<div class="detaWrap deShow">
+<div class="dePart">
+    <div class="deAction">
+        <!-- 20663 【需求】供应商平台-日常保洁，调度可在保洁人员上门打卡前进行改派  chong.cheng 2019-04-11 start -->
+        <input type="button" value="派单" id="sendCleaningOrder"  class="PurBackground" >
+        <!-- 20663 【需求】供应商平台-日常保洁，调度可在保洁人员上门打卡前进行改派  chong.cheng 2019-04-11 end -->
+        <input type="button" style="display: none;" value="确认" id="confirmCleaningOrder" class="PurBackground">
+        <!-- 25175 【需求】日常保洁增加供应商平台退回功能  zjshao 2019-08-28 start -->
+        <input type="button" value="退回" id="exitBtn"  class="PurBackground" >
+        <!-- 25175 【需求】日常保洁增加供应商平台退回功能  zjshao 2019-08-28 start -->
+    </div>
+</div>
+</div>
+<div style="display:none;" id="sonWindowDiv">
+<div class="zhezhao"></div>
+<div class="content" style="left: 30%;top: 20%;width: 600px;height: 400px;">
+     <table id="cancelReason" class="deTable">
+         <br/><br/><br/>
+         <tr>
+             <td>
+              <span><font style="font-weight:bold;font-size:18px;">取消信息</font></span><br/><br/>
+             </td>
+         </tr>
+         <tr>
+             <td style="width: 30%;" class="label">取消人：</td>
+             <td>
+                                 </td>
+         </tr>
+         <tr>
+             <td  style="width: 30%;" class="label">取消时间：</td>
+             <td>
+                 
+             </td>
+         </tr>
+         <tr>
+             <td style="width: 30%;" class="label">取消原因：</td>
+             <td>
+                 
+             </td>
+         </tr>
+     </table>
+     <table class="deTable">
+         <tr>
+             <td colspan="2" align="center">
+                 <input style="width: 58px;height: 28px;" type="button" name="close" onclick="closediv();" value="关闭" />
+             </td>
+         </tr>
+     </table>
+</div>
+</div>
+<div id="dialog" title="退回原因" style="display: none;">
+退回原因     <select class="formSelect joint" name="backReason" id="backReason">
+<option value="">请选择</option>
+                    <option value="1001100270001"
+                        >超时效无法上门</option>
+                <option value="1001100270002"
+                        >时效内加急无法满足</option>
+                <option value="1001100270003"
+                        >其他</option>
+        </select>
+<br>
+<br>
+备注<br>
+<br>
+<textarea  class="formTextArea"  name="remarkeArea" id="remarkeArea"  style="width:100%" maxlength="100" ></textarea>
+</div>
+<script>
+$(function() {
+    $('[data-magnify]').magnify({
+        headToolbar: [
+            'close'
+        ],
+        footToolbar: [
+            'zoomIn',
+            'zoomOut',
+            'prev',
+            'fullscreen',
+            'next',
+            'actualSize',
+            'rotateRight'
+        ],
+        fixedModalSize: true,
+        multiInstances: false,
+        fixedContent: false,
+        modalWidth: 600,
+        modalHeight: 480,
+        title: false,
+    });
 });
 </script>
-
-</div>
- <div class="dragPart">
-    <table id="tableSort" class="table">
-        <tr class="listTitle" id="ff">
-            <th>序号</th>
-            <th>保洁工单编号</th>
-            <th>房源编号</th>
-            <th>小区名称</th>
-            <th>预计保洁日期</th>
-            <th>保洁人员</th>
-            <th>预计上门时间</th>
-            <th>保洁完成时间</th>
-            <th>是否为返工单</th>
-            <th>工单状态</th>
-            <th>操作</th>
-        </tr>
-        
-                                    <tr>
-                <td>
-                    <input type="radio" value="35890" name="radioId"/>1
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0000582023"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0000582023" href="javascript:void(0);" >
-                        BJGD0000582023
-                    </a>
-                </td>
-
-                <td>
-                                FY1000356350
-                    </td>
-
-                <td>
-                                科学园南里五区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="134111" name="radioId"/>2
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0002072020"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0002072020" href="javascript:void(0);" >
-                        BJGD0002072020
-                    </a>
-                </td>
-
-                <td>
-                                FY0030554958
-                    </td>
-
-                <td>
-                                龙腾苑五区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="170284" name="radioId"/>3
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0002638019"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0002638019" href="javascript:void(0);" >
-                        BJGD0002638019
-                    </a>
-                </td>
-
-                <td>
-                                FY1000019212
-                    </td>
-
-                <td>
-                                公园悦府
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="210169" name="radioId"/>4
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0003283018"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0003283018" href="javascript:void(0);" >
-                        BJGD0003283018
-                    </a>
-                </td>
-
-                <td>
-                                FY1000396147
-                    </td>
-
-                <td>
-                                龙腾苑三区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="223804" name="radioId"/>5
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0003503017"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0003503017" href="javascript:void(0);" >
-                        BJGD0003503017
-                    </a>
-                </td>
-
-                <td>
-                                FY0031015801
-                    </td>
-
-                <td>
-                                华盛乐章
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="273274" name="radioId"/>6
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0004309015"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0004309015" href="javascript:void(0);" >
-                        BJGD0004309015
-                    </a>
-                </td>
-
-                <td>
-                                FY1000238430
-                    </td>
-
-                <td>
-                                龙腾苑四区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="295885" name="radioId"/>7
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0004673014"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0004673014" href="javascript:void(0);" >
-                        BJGD0004673014
-                    </a>
-                </td>
-
-                <td>
-                                FY1000402862
-                    </td>
-
-                <td>
-                                龙兴园西区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="296830" name="radioId"/>8
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0004685014"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0004685014" href="javascript:void(0);" >
-                        BJGD0004685014
-                    </a>
-                </td>
-
-                <td>
-                                FY0032948717
-                    </td>
-
-                <td>
-                                龙腾苑三区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="361068" name="radioId"/>9
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0005707012"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0005707012" href="javascript:void(0);" >
-                        BJGD0005707012
-                    </a>
-                </td>
-
-                <td>
-                                FY1000045745
-                    </td>
-
-                <td>
-                                龙兴园北区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="364471" name="radioId"/>10
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0005765012"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0005765012" href="javascript:void(0);" >
-                        BJGD0005765012
-                    </a>
-                </td>
-
-                <td>
-                                FY0031302311
-                    </td>
-
-                <td>
-                                科学园南里四区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="364550" name="radioId"/>11
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0005768012"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0005768012" href="javascript:void(0);" >
-                        BJGD0005768012
-                    </a>
-                </td>
-
-                <td>
-                                FY0036283529
-                    </td>
-
-                <td>
-                                安翔里
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="429492" name="radioId"/>12
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0006807010"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0006807010" href="javascript:void(0);" >
-                        BJGD0006807010
-                    </a>
-                </td>
-
-                <td>
-                                FY1000105364
-                    </td>
-
-                <td>
-                                龙腾苑二区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="457632" name="radioId"/>13
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0007287009"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0007287009" href="javascript:void(0);" >
-                        BJGD0007287009
-                    </a>
-                </td>
-
-                <td>
-                                FY0035582304
-                    </td>
-
-                <td>
-                                南沙滩五建小区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="480866" name="radioId"/>14
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0007721008"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0007721008" href="javascript:void(0);" >
-                        BJGD0007721008
-                    </a>
-                </td>
-
-                <td>
-                                FY0035820183
-                    </td>
-
-                <td>
-                                OLD龙泽苑东区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="500513" name="radioId"/>15
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0008078008"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0008078008" href="javascript:void(0);" >
-                        BJGD0008078008
-                    </a>
-                </td>
-
-                <td>
-                                FY0035758708
-                    </td>
-
-                <td>
-                                保利罗兰香谷
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="507421" name="radioId"/>16
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0008201007"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0008201007" href="javascript:void(0);" >
-                        BJGD0008201007
-                    </a>
-                </td>
-
-                <td>
-                                FY1000105861
-                    </td>
-
-                <td>
-                                中和家园
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="507952" name="radioId"/>17
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0008211007"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0008211007" href="javascript:void(0);" >
-                        BJGD0008211007
-                    </a>
-                </td>
-
-                <td>
-                                FY1000440954
-                    </td>
-
-                <td>
-                                龙华园西区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="530587" name="radioId"/>18
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0008631006"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0008631006" href="javascript:void(0);" >
-                        BJGD0008631006
-                    </a>
-                </td>
-
-                <td>
-                                FY0034394720
-                    </td>
-
-                <td>
-                                科学园南里三区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="530874" name="radioId"/>19
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0008638006"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0008638006" href="javascript:void(0);" >
-                        BJGD0008638006
-                    </a>
-                </td>
-
-                <td>
-                                FY0033743886
-                    </td>
-
-                <td>
-                                龙腾苑四区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                        <tr>
-                <td>
-                    <input type="radio" value="571829" name="radioId"/>20
-                </td>
-
-                <td>
-                    <a
-                                                        style="color : red"
-                                                data-content ="保洁工单详情" data-tab="B_WORKORDER_MA_4702_ITEM_DETAIL_BJGD0009356004"
-                        data-src="http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=BJGD0009356004" href="javascript:void(0);" >
-                        BJGD0009356004
-                    </a>
-                </td>
-
-                <td>
-                                FY0033529763
-                    </td>
-
-                <td>
-                                龙泽苑西区
-                    </td>
-                <td>
-                                2020-02-01
-                    </td>
-                <td>
-                                -
-                    </td>
-                <td>
-                                 -
-                    </td>
-                <td>
-                                --
-                    </td>
-                <td>
-                                否
-                    </td>
-                <td>
-                    待派工					</td>
-                <td>
-                                        </td>
-            </tr>
-            
-                </table>
-    <div id="box"></div>
-</div>
-</div>
     <div class="loadingWrap" style="width: 100%; height: 100%; z-index: 2001;display:none;">
         <p class="loadingPic">加载中。。请稍后！</p>
 </div>
