@@ -4,10 +4,8 @@
     "description": "",
     "main": "app/index.js",
     "scripts": {
-        "dev": "electron app/index.js",
-        "test": "node scripts/build.js",
-        "package-linux": "electron-builder build --mac",
-        "package-win": "electron-builder build --win --x64"
+        "dev": "export NODE_ENV=production && node app/index.js",
+        "test": "node scripts/build.js"
     },
     "repository": {
         "type": "git",
@@ -23,37 +21,13 @@
     "dependencies": {
         "axios": "^0.19.2",
         "cheerio": "^1.0.0-rc.3",
-        "electron-store": "^5.2.0",
-        "node-xlsx": "^0.15.0"
-    },
-    "devDependencies": {
-        "electron": "^9.0.5",
-        "electron-packager": "^15.0.0",
-        "electron-builder": "^22.7.0"
-    },
-    "build": {
-        "productName": "测试APP",
-        "appId": "com.guofangchao.supplier_58_robot",
-        "files": [
-            "node_modules/",
-            "app/",
-            "dist/",
-            "package.json"
-        ],
-        "directories": {
-            "buildResources": "dist/",
-            "output": "bundle/"
-        },
-        "mac": {
-            "category": "public.app-category.developer-tools",
-            "target": "dmg"
-        },
-        "win": {
-            "target": [
-                "nsis",
-                "msi"
-            ],
-            "publisherName": "测试APP"
-        }
+        "config": "^3.3.1",
+        "cron": "^1.8.2",
+        "koa": "^2.13.0",
+        "koa-body": "^4.2.0",
+        "koa-router": "^9.1.0",
+        "mysql2": "^2.1.0",
+        "node-xlsx": "^0.15.0",
+        "sequelize": "^6.2.4"
     }
 }
