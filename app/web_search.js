@@ -170,15 +170,44 @@ async function isLogin() {
         return true;
     }
 }
+//登录
+async function login(username, password, checkCode) {
+    const res = await axios({
+        url: "http://gys.1zu.com/admin/login.htm",
+        method: "POST",
+        headers: {
+            Referer: "http://gys.1zu.com/admin/login.htm",
+            Cookie: cookie,
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        data: `username=${username}&password=${password}&checkCode=${checkCode}`,
+    });
+    const html = res.data;
+    if (html.indexOf("立即登录") > 0) {
+        console.log(res.data);
+        return false;
+    } else {
+        let cookie_tmp = "";
+        const list = res.headers["set-cookie"];
+        list.forEach((item) => {
+            const tmp = item.split(";")[0];
+            cookie_tmp += tmp + ";";
+        });
+        setCookie(cookie_tmp);
+        return true;
+    }
+}
+function setCookie(data) {
+    cookie = data;
+    fs.writeFileSync(cookie_path, cookie);
+}
 //1022000000
 module.exports = {
     isLogin,
-    setCookie(data) {
-        cookie = data;
-        fs.writeFileSync(cookie_path, cookie);
-    },
+    setCookie,
     getDetail1,
     getDetail2,
     getlist1,
     getlist2,
+    login,
 };

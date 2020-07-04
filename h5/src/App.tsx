@@ -1,8 +1,15 @@
 import React from "react";
 import "./App.css";
 import request from "./utils/request";
+import LoginCom from "./LoginCom";
+import List1Com from "./List1Com";
+import List2Com from "./List2Com";
+import TaskList from "./TaskList";
 
-class Main extends React.Component {
+interface IState {
+    needLogin: boolean;
+}
+class Main extends React.Component<any, IState> {
     constructor(props: any) {
         super(props);
         this.state = {
@@ -12,24 +19,26 @@ class Main extends React.Component {
     render() {
         return (
             <div className="container">
-                <div id="login">
-                    <h4>登录</h4>
-                    <input />
-                    <input />
-                    <img src="" alt="" />
-                    <button>登录</button>
-                </div>
+                {this.state.needLogin && <LoginCom onLogin={(e) => this.login(e)} />}
+                <List1Com />
+                <List2Com />
+                <TaskList />
             </div>
         );
     }
     componentDidMount() {
-        // this.isLogin();
+        this.isLogin();
     }
     async isLogin() {
         const res = await request.get("/robot/islogin");
         console.log(res);
         this.setState({
             needLogin: !res,
+        });
+    }
+    login(bl: boolean) {
+        this.setState({
+            needLogin: bl,
         });
     }
 }

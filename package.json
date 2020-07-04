@@ -30,5 +30,8 @@
         "mysql2": "^2.1.0",
         "node-xlsx": "^0.15.0",
         "sequelize": "^6.2.4"
+    },
+    "devDependencies": {
+        "@types/axios": "^0.14.0"
     }
 }
