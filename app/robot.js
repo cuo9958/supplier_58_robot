@@ -51,6 +51,21 @@ routers.post("/login", async function (ctx) {
 
 //创建下载任务
 routers.post("/create1", function (ctx) {
+    const {
+        orderCode,
+        houseCode,
+        status,
+        cleaningWorkerName,
+        timeType,
+        queryStartTime,
+        queryEndTime,
+        projectName,
+        isSmartLock,
+        onDoorStartTime,
+        onDoorEndTime,
+        isRework,
+    } = ctx.request.body;
+    
     TaskReduce.createTask(1);
     ctx.body = {
         code: 1,
