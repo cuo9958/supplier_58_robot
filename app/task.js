@@ -84,23 +84,13 @@ module.exports = {
     //dbType=&clnOrderId=&clnHouseCode=&clnOrderState=&cleaningWorkerName=&timeType=1&queryStartTime=&queryEndTime=&clnProjectName=&clnOrderType=
     createTask2: async function (data) {
         if (!data) return;
-        const {
-            clnOrderId,
-            clnHouseCode,
-            clnOrderState,
-            cleaningWorkerName,
-            timeType,
-            queryStartTime,
-            queryEndTime,
-            clnProjectName,
-            clnOrderType,
-        } = data;
+        const { clnOrderId, clnHouseCode, clnOrderState, cleaningWorkerName, timeType, queryStartTime, queryEndTime, clnProjectName, clnOrderType } = data;
         const search_str = `dbType=&clnOrderId=${clnOrderId}&clnHouseCode=${clnHouseCode}&clnOrderState=${clnOrderState}&cleaningWorkerName=${cleaningWorkerName}&timeType=${timeType}&queryStartTime=${queryStartTime}&queryEndTime=${queryEndTime}&clnProjectName=${clnProjectName}&clnOrderType=${clnOrderType}&pageSize=20`;
-        const pageResult = await WebSearch.getlist1(search_str + "&currentPage=1");
+        const pageResult = await WebSearch.getlist2(search_str + "&currentPage=1");
 
         const model = await TaskModel.insert({
-            title: "双周保洁查询",
-            task_type: 0,
+            title: "日常保洁查询",
+            task_type: 1,
             search_str,
             pageCount: pageResult.count,
         });

@@ -58,7 +58,7 @@ routers.post("/create1", async function (ctx) {
     };
 });
 routers.post("/create2", function (ctx) {
-    TaskReduce.createTask1(1);
+    await TaskReduce.createTask2(ctx.request.body);
     ctx.body = {
         code: 1,
     };
@@ -88,5 +88,19 @@ routers.post("/goon", async function (ctx) {
     ctx.body = {
         code: 1,
     };
+});
+routers.post("/del", async function (ctx) {
+    const id=ctx.request.body.id;
+    if(!id||isNaN(id)){
+        ctx.body = {
+            code: 0,
+        };
+    }else{
+        await TaskModel.del(id*1)
+        ctx.body = {
+            code: 1,
+        };
+    }
+    
 });
 module.exports = routers.routes();

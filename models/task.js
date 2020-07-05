@@ -106,4 +106,9 @@ module.exports = {
             },
         });
     },
+    del(id) {
+        return Task.destroy({
+            where: { id },
+        });
+    },
 };

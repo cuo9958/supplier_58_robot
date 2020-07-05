@@ -58,6 +58,9 @@ export default class extends React.Component<any, IState> {
                                 下载结果
                             </Button>
                         )}
+                        <Button onClick={() => this.del(row.id)} size="mini" type="danger">
+                            删除
+                        </Button>
                     </Button.Group>
                 );
             },
@@ -100,6 +103,14 @@ export default class extends React.Component<any, IState> {
         try {
             await request.post("/robot/goon", { id });
             Message.success("任务已刷新");
+        } catch (error) {
+            Message.error(error.message);
+        }
+    }
+    async del(id: number) {
+        try {
+            await request.post("/robot/del", { id });
+            Message.success("已删除");
         } catch (error) {
             Message.error(error.message);
         }
