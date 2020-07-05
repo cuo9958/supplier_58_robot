@@ -15,15 +15,22 @@ if (!fs.existsSync(cookie_path)) {
 
 console.log("cookie", cookie);
 
-function getHtml(url) {
-    return axios({
-        url: url,
-        method: "get",
-        headers: {
-            Referer: "http://gys.1zu.com/cleaningWeek/initListCleaningWeekPlanItem.htm?source=init",
-            Cookie: cookie,
-        },
-    });
+async function getHtml(url) {
+    try {
+        const res = await axios({
+            url: url,
+            method: "get",
+            headers: {
+                Referer: "http://gys.1zu.com/cleaningWeek/initListCleaningWeekPlanItem.htm?source=init",
+                Cookie: cookie,
+            },
+        });
+        console.log(res.status);
+        return res.data;
+    } catch (error) {
+        console.log(error)
+        return "";
+    }
 }
 //双周
 // "http://gys.1zu.com/cleaningWeek/listCleaningWeekPlanItem.htm?dbType=&orderCode=&houseCode=&status=&cleaningWorkerName=&timeType=1&queryStartTime=&queryEndTime=&projectName=&isSmartLock=&onDoorStartTime=2020-07-03&onDoorEndTime=2020-07-03&isRework="
@@ -39,27 +46,33 @@ async function getlist1(params = "") {
     table.each((item) => {
         const tmp = $(table[item]).find("td");
         //保洁工单编号
-        const bianhao = tmp.eq(1).text().trim();
+        const bianhao1 = tmp.eq(1).text().trim();
         //房源编号
         const bianhao2 = tmp.eq(2).text().trim();
         //小区名称
-        const xiaoq = tmp.eq(3).text().trim();
+        const name = tmp.eq(3).text().trim();
         //预计保洁日期
-        const yuji = tmp.eq(4).text().trim();
+        const riqi1 = tmp.eq(4).text().trim();
         //保洁人员
-        const yuji5 = tmp.eq(5).text().trim();
+        const renyuan = tmp.eq(5).text().trim();
         //预计上门时间
-        const yuji6 = tmp.eq(6).text().trim();
+        const riqi2 = tmp.eq(6).text().trim();
         //保洁完成时间
-        const yuji7 = tmp.eq(7).text().trim();
+        const riqi3 = tmp.eq(7).text().trim();
         //是否为返工单
-        const yuji8 = tmp.eq(8).text().trim();
+        const fangong = tmp.eq(8).text().trim();
         //工单状态
         const status = tmp.eq(9).text().trim();
-        console.log(bianhao, bianhao2, xiaoq);
-        //TODO 增加字段
         list.push({
             status,
+            bianhao1,
+            bianhao2,
+            name,
+            renyuan,
+            riqi2,
+            riqi3,
+            riqi1,
+            fangong,
         });
     });
     return {
@@ -116,19 +129,16 @@ async function getDetail1(orderCode = "") {
     const gongdan = $(".dePart").eq(1);
 
     //上门打开时间
-    const shangmen = gongdan.find(".deTable td").eq(6).find("h5").text().trim();
-    console.log(shangmen);
+    const riqi4 = gongdan.find(".deTable td").eq(6).find("h5").text().trim();
     const jieguo = $(".dePart").eq(3);
-
     //保洁完成
-    const wanc = jieguo.find("td").eq(1).find("h5").text().trim();
-    console.log(wanc);
+    const riqi5 = jieguo.find("td").eq(1).find("h5").text().trim();
     //保洁费用
     const feiyong = jieguo.find("td").eq(2).find("h5").text().trim();
-    console.log(feiyong);
     return {
-        wanc,
+        riqi5,
         feiyong,
+        riqi4,
     };
 }
 //日常详情

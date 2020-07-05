@@ -98,7 +98,7 @@ export default class extends React.Component<any, IState> {
         this.setState({ model });
     }
     async create() {
-        console.log(this.state.model);
-        // const data = await request.post("/robot/create1", {});
+        const data = await request.post("/robot/create1", this.state.model);
+        alert("已提交");
     }
 }

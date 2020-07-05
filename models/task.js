@@ -39,10 +39,15 @@ const Task = db.define(
             defaultValue: 0,
             comment: "搜索当前页",
         },
+        pageCount: {
+            type: Sequelize.INTEGER,
+            defaultValue: 0,
+            comment: "总页数",
+        },
         status: {
             type: Sequelize.TINYINT,
             defaultValue: 0,
-            comment: "状态;0:失效;1:使用",
+            comment: "状态;0:进行中;1:结束",
         },
     },
     {
@@ -57,10 +62,10 @@ module.exports = {
     insert: function (model) {
         return Task.create(model);
     },
-    update: function (model) {
+    update: function (model, id) {
         return Task.update(model, {
             where: {
-                id: model.id,
+                id,
             },
         });
     },
@@ -71,12 +76,13 @@ module.exports = {
             },
         });
     },
+    end(id) {
+        return Task.update({ status: 1 }, { where: { id } });
+    },
     getAll() {
         return Task.findAll({
-            where: {
-                status: 1,
-            },
-            attributes: ["id", "title", "key"],
+            limit: 20,
+            order: [["id", "desc"]],
         });
     },
     getCount(limit = 1, opts = {}) {

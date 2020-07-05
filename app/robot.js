@@ -2,6 +2,7 @@ const Router = require("koa-router");
 const axios = require("axios");
 const TaskReduce = require("./task");
 const WebSearch = require("./web_search");
+const TaskModel = require("../models/task");
 
 const routers = new Router();
 
@@ -50,36 +51,40 @@ routers.post("/login", async function (ctx) {
 });
 
 //创建下载任务
-routers.post("/create1", function (ctx) {
-    const {
-        orderCode,
-        houseCode,
-        status,
-        cleaningWorkerName,
-        timeType,
-        queryStartTime,
-        queryEndTime,
-        projectName,
-        isSmartLock,
-        onDoorStartTime,
-        onDoorEndTime,
-        isRework,
-    } = ctx.request.body;
-    
-    TaskReduce.createTask(1);
+routers.post("/create1", async function (ctx) {
+    await TaskReduce.createTask1(ctx.request.body);
     ctx.body = {
         code: 1,
     };
 });
 routers.post("/create2", function (ctx) {
-    TaskReduce.createTask(1);
+    TaskReduce.createTask1(1);
     ctx.body = {
         code: 1,
     };
 });
-//获取任务详情
-routers.get("/task", function (ctx) {
-    TaskReduce.createTask(1);
+//获取任务列表
+routers.get("/task", async function (ctx) {
+    const list = await TaskModel.getAll();
+    const data = [];
+    if (list) {
+        list.forEach((item) => {
+            const runing = !!TaskReduce.getTask(item.id);
+            data.push(
+                Object.assign({}, item.dataValues, {
+                    runing,
+                })
+            );
+        });
+    }
+    ctx.body = {
+        code: 1,
+        data,
+    };
+});
+//继续执行任务
+routers.post("/goon", async function (ctx) {
+    await TaskReduce.goon(ctx.request.body.id * 1);
     ctx.body = {
         code: 1,
     };

@@ -65,6 +65,7 @@ const Result = db.define(
             defaultValue: "",
             comment: "是否为返工单",
         },
+        //===
         riqi4: {
             type: Sequelize.STRING,
             defaultValue: "",
