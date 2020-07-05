@@ -1,0 +1,13 @@
+{
+    "apps": [
+        {
+            "name": "supplier_58_robot@18801",
+            "script": "app/index.js",
+            "args": [],
+            "env": {
+                "PORT": "18801",
+                "NODE_ENV": "production"
+            }
+        }
+    ]
+}
