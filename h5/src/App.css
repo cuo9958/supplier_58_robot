@@ -3,8 +3,11 @@ h5 {
     padding: 0;
     margin: 5px 0;
 }
-#list1 {
+#list1,
+#list2 {
+    margin: 10px;
     border: solid 1px #ccc;
+    padding: 10px;
 }
 
 #task_box {
