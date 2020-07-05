@@ -9,6 +9,11 @@ h5 {
     border: solid 1px #ccc;
     padding: 10px;
 }
+#list1 input,
+#list2 input {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
 
 #task_box {
     margin: 10px;
