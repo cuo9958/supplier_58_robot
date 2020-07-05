@@ -7,6 +7,7 @@ async function getlist(item) {
         url: "https://dalingjia.com/api_config/resource/shop",
     });
     console.log("请求结果", item, res.data.data.openHxIM);
+    await sleep(1000);
     return res.data.data.openHxIM;
 }
 async function main() {
@@ -14,4 +15,15 @@ async function main() {
     console.log(data);
 }
 
+const sleep = (time) => new Promise((aaa) => setTimeout(() => aaa(), time));
+
+// async function test2(n, next) {
+//     console.log("测试", n);
+//     await sleep(1000);
+//     next();
+// }
+// async function main() {
+//     const data = await async.times(5, test2);
+//     console.log("结果", data);
+// }
 main();
