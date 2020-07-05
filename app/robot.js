@@ -106,7 +106,7 @@ routers.post("/del", async function (ctx) {
 });
 routers.get("/download/:id", async function (ctx) {
     const id = ctx.params.id;
-    const list = ResultModel.getAll(id * 1);
+    const list = await ResultModel.getAll(id * 1);
     const mp = [];
     if (list.length > 0) {
         if (list[0].task_type == 0) {
