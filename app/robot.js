@@ -3,6 +3,8 @@ const axios = require("axios");
 const TaskReduce = require("./task");
 const WebSearch = require("./web_search");
 const TaskModel = require("../models/task");
+const Excel = require("./excel");
+const ResultModel = require("../models/result");
 
 const routers = new Router();
 
@@ -57,7 +59,7 @@ routers.post("/create1", async function (ctx) {
         code: 1,
     };
 });
-routers.post("/create2", function (ctx) {
+routers.post("/create2", async function (ctx) {
     await TaskReduce.createTask2(ctx.request.body);
     ctx.body = {
         code: 1,
@@ -90,17 +92,99 @@ routers.post("/goon", async function (ctx) {
     };
 });
 routers.post("/del", async function (ctx) {
-    const id=ctx.request.body.id;
-    if(!id||isNaN(id)){
+    const id = ctx.request.body.id;
+    if (!id || isNaN(id)) {
         ctx.body = {
             code: 0,
         };
-    }else{
-        await TaskModel.del(id*1)
+    } else {
+        await TaskModel.del(id * 1);
         ctx.body = {
             code: 1,
         };
     }
-    
+});
+routers.get("/download/:id", async function (ctx) {
+    const id = ctx.params.id;
+    const list = ResultModel.getAll(id * 1);
+    const mp = [];
+    if (list.length > 0) {
+        if (list[0].task_type == 0) {
+            mp.push([
+                "保洁工单编号",
+                "房源编号",
+                "小区名称",
+                "保洁人员",
+                "预计上门时间",
+                "保洁完成时间",
+                "工单状态",
+                "预计保洁日期",
+                "是否为返工单",
+                "上门打卡时间",
+                "保洁完成时间",
+                "保洁费用",
+            ]);
+            list.forEach((item) => {
+                mp.push([
+                    item.bianhao1,
+                    item.bianhao2,
+                    item.name,
+                    item.renyuan,
+                    item.riqi2,
+                    item.riqi3,
+                    item.status,
+                    item.riqi1,
+                    item.fangong,
+                    item.riqi4,
+                    item.riqi5,
+                    item.feiyong,
+                ]);
+            });
+        } else {
+            mp.push([
+                "保洁工单编号",
+                "房源编号",
+                "小区名称",
+                "保洁人员",
+                "预计上门时间",
+                "保洁完成时间",
+                "工单状态",
+                "期望上门时间",
+                "保洁套餐",
+                "房屋面积",
+                "经济人",
+                "保洁类型",
+                "上门打卡时间",
+                "保洁完成时间",
+                "保洁预估费用",
+                "保洁费用",
+            ]);
+            list.forEach((item) => {
+                mp.push([
+                    item.bianhao1,
+                    item.bianhao2,
+                    item.name,
+                    item.renyuan,
+                    item.riqi2,
+                    item.riqi3,
+                    item.status,
+                    item.qiwang,
+                    item.taocan,
+                    item.mianji,
+                    item.jingji,
+                    item.mianji,
+                    item.shangmen,
+                    item.wanc,
+                    item.yugu,
+                    item.feiyong2,
+                ]);
+            });
+        }
+    }
+
+    const buf = Excel.arrToBuff(mp);
+    ctx.set("content-type", "application/vnd.ms-excel");
+    ctx.set("content-Disposition", `attachment;filename=baojiegongdan.xlsx`);
+    ctx.body = buf;
 });
 module.exports = routers.routes();

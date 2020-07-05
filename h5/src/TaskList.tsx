@@ -55,7 +55,9 @@ export default class extends React.Component<any, IState> {
                         </Button>
                         {row.status == 1 && (
                             <Button size="mini" type="info">
-                                下载结果
+                                <a href={"/api/robot/download/" + row.id} target="_blank">
+                                    下载结果
+                                </a>
                             </Button>
                         )}
                         <Button onClick={() => this.del(row.id)} size="mini" type="danger">

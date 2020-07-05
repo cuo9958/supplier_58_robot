@@ -102,7 +102,7 @@ const Result = db.define(
             defaultValue: "",
             comment: "经济人",
         },
-        mianji: {
+        baojieleixing: {
             type: Sequelize.STRING,
             defaultValue: "",
             comment: "保洁类型",
@@ -110,7 +110,7 @@ const Result = db.define(
         shangmen: {
             type: Sequelize.STRING,
             defaultValue: "",
-            comment: "上门打开时间",
+            comment: "上门打卡时间",
         },
         wanc: {
             type: Sequelize.STRING,
@@ -154,12 +154,11 @@ module.exports = {
             },
         });
     },
-    getAll() {
+    getAll(task_id) {
         return Result.findAll({
             where: {
-                status: 1,
+                task_id,
             },
-            attributes: ["id", "title", "key"],
         });
     },
     getCount(limit = 1, opts = {}) {

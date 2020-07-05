@@ -17,7 +17,9 @@ class TaskRobot {
     async run1() {
         this.timer = new CronJob("1 */2 * * * *", this.search.bind(this)).start();
     }
-    run2() {}
+    run2() {
+        this.timer = new CronJob("1 */2 * * * *", this.search2.bind(this)).start();
+    }
     //currentPage
     async search() {
         const model = await TaskModel.get(this.id);
@@ -40,6 +42,35 @@ class TaskRobot {
             {
                 task_id: this.id,
                 task_type: 0,
+            },
+            item,
+            data
+        );
+        await ResultModel.insert(model);
+        await sleep(Math.round(Math.random() * 3000 + 1000));
+    }
+
+    async search2() {
+        const model = await TaskModel.get(this.id);
+        this.pageIndex = model.pageIndex + 1;
+        if (this.pageIndex <= model.pageCount) {
+            await TaskModel.update({ pageIndex: this.pageIndex }, this.id);
+            const listdata = await WebSearch.getlist2(this.params + "&currentPage=" + this.pageIndex);
+            console.log(listdata.list);
+            await async.mapLimit(listdata.list, 2, this.getDetail2.bind(this));
+        } else {
+            TaskModel.end(this.id);
+            if (this.timer) this.timer.stop();
+            task_list.delete(this.id);
+        }
+    }
+
+    async getDetail2(item) {
+        const data = await WebSearch.getDetail2(item.bianhao1);
+        const model = Object.assign(
+            {
+                task_id: this.id,
+                task_type: 1,
             },
             item,
             data
@@ -96,7 +127,7 @@ module.exports = {
         });
 
         const task = new TaskRobot(model.id, search_str);
-        task.run1();
+        task.run2();
         task_list.set(model.id, task);
         return task;
     },

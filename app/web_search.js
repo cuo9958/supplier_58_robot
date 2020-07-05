@@ -26,10 +26,10 @@ async function getHtml(url) {
             },
         });
         console.log(res.status);
-        return res.data;
+        return res;
     } catch (error) {
-        console.log(error)
-        return "";
+        console.log(error);
+        return { data: "" };
     }
 }
 //双周
@@ -40,7 +40,6 @@ async function getlist1(params = "") {
     const pagecount = $(".searchPage .allPage").text();
 
     console.log("总x页", pagecount);
-    console.log($(".searchPage .page-sum").text());
     const table = $("#tableSort tr");
     const list = [];
     table.each((item) => {
@@ -88,33 +87,39 @@ async function getlist2(params = "") {
     const pagecount = $(".searchPage .allPage").text();
 
     console.log("总x页", pagecount);
-    console.log($(".searchPage .page-sum").text());
     const table = $("#tableSort tr");
     const list = [];
     table.each((item) => {
         const tmp = $(table[item]).find("td");
         //保洁工单编号
-        const bianhao = tmp.eq(1).text().trim();
+        const bianhao1 = tmp.eq(1).text().trim();
         //房源编号
         const bianhao2 = tmp.eq(2).text().trim();
         //小区名称
-        const xiaoq = tmp.eq(3).text().trim();
+        const name = tmp.eq(3).text().trim();
         //期望上门时间
-        const yuji = tmp.eq(4).text().trim();
+        const qiwang = tmp.eq(4).text().trim();
         //保洁套餐
-        const yuji5 = tmp.eq(5).text().trim();
+        const taocan = tmp.eq(5).text().trim();
         //保洁人员
-        const yuji6 = tmp.eq(6).text().trim();
+        const renyuan = tmp.eq(6).text().trim();
         //预计上门时间
-        const yuji7 = tmp.eq(7).text().trim();
+        const riqi2 = tmp.eq(7).text().trim();
         //保洁完成时间
-        const yuji8 = tmp.eq(8).text().trim();
+        const riqi3 = tmp.eq(8).text().trim();
         //保洁单状态
         const status = tmp.eq(9).text().trim();
-        console.log(bianhao, bianhao2, xiaoq);
-        //TODO:字段
+
         list.push({
             status,
+            bianhao1,
+            bianhao2,
+            name,
+            renyuan,
+            riqi2,
+            riqi3,
+            qiwang,
+            taocan,
         });
     });
     return {
@@ -147,28 +152,31 @@ async function getDetail2(clnOrderId = "") {
     const $ = cheerio.load(res.data);
     const fangyuan = $(".dePart").eq(0);
     //经纪人
-    const jingjiren = fangyuan.find("td").eq(4).find("h5").text().trim();
-    console.log(jingjiren);
+    const jingji = fangyuan.find("td").eq(4).find("h5").text().trim();
     //房屋面积
     const mianji = fangyuan.find("td").eq(6).find("h5").text().trim();
-    console.log(mianji);
 
     const baojiedan = $(".dePart").eq(1);
     //保洁类型
     const baojieleixing = baojiedan.find("td").eq(1).find("h5").text().trim();
-    console.log(baojieleixing);
     //预估费用
     const yugu = baojiedan.find("td").eq(2).find("h5").text().trim();
-    console.log(yugu);
     //上门打卡时间
-    const daka = baojiedan.find("td").eq(11).find("h5").text().trim();
-    console.log(daka);
+    const shangmen = baojiedan.find("td").eq(11).find("h5").text().trim();
+
+    const jieguo = $(".dePart").eq(2);
+    //保洁完成时间
+    const wanc = jieguo.find("td").eq(1).find("h5").text().trim();
+    //保洁费用
+    const feiyong2 = jieguo.find("td").eq(2).find("h5").text().trim();
     return {
-        jingjiren,
         mianji,
+        jingji,
         baojieleixing,
+        shangmen,
         yugu,
-        daka,
+        wanc,
+        feiyong2,
     };
 }
 async function isLogin() {
