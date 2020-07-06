@@ -5,6 +5,7 @@ import LoginCom from "./LoginCom";
 import List1Com from "./List1Com";
 import List2Com from "./List2Com";
 import TaskList from "./TaskList";
+import { Message } from "element-react";
 
 interface IState {
     needLogin: boolean;
@@ -30,11 +31,14 @@ class Main extends React.Component<any, IState> {
         this.isLogin();
     }
     async isLogin() {
-        const res = await request.get("/robot/islogin");
-        console.log(res);
-        this.setState({
-            needLogin: !res,
-        });
+        try {
+            const res = await request.get("/robot/islogin");
+            this.setState({
+                needLogin: !res,
+            });
+        } catch (error) {
+            Message.error("服务器已经被封，稍等2个小时解封");
+        }
     }
     login(bl: boolean) {
         this.setState({
