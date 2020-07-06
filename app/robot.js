@@ -105,6 +105,19 @@ routers.post("/del", async function (ctx) {
         };
     }
 });
+routers.post("/stop", async function (ctx) {
+    const id = ctx.request.body.id;
+    if (!id || isNaN(id)) {
+        ctx.body = {
+            code: 0,
+        };
+    } else {
+        TaskReduce.del(id * 1);
+        ctx.body = {
+            code: 1,
+        };
+    }
+});
 routers.get("/download/:id", async function (ctx) {
     const id = ctx.params.id;
     const list = await ResultModel.getAll(id * 1);

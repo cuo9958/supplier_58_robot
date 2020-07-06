@@ -50,9 +50,11 @@ export default class extends React.Component<any, IState> {
             render: (row: any) => {
                 return (
                     <Button.Group>
-                        <Button onClick={() => this.goon(row.id)} size="mini" type="primary">
-                            继续执行
-                        </Button>
+                        {!row.runing && (
+                            <Button onClick={() => this.goon(row.id)} size="mini" type="primary">
+                                继续执行
+                            </Button>
+                        )}
                         {row.status == 1 && (
                             <Button size="mini" type="info">
                                 <a href={"/api/robot/download/" + row.id} target="_blank">
@@ -60,6 +62,9 @@ export default class extends React.Component<any, IState> {
                                 </a>
                             </Button>
                         )}
+                        <Button onClick={() => this.stop(row.id)} size="mini" type="warning">
+                            暂停
+                        </Button>
                         <Button onClick={() => this.del(row.id)} size="mini" type="danger">
                             删除
                         </Button>
@@ -113,6 +118,14 @@ export default class extends React.Component<any, IState> {
         try {
             await request.post("/robot/del", { id });
             Message.success("已删除");
+        } catch (error) {
+            Message.error(error.message);
+        }
+    }
+    async stop(id: number) {
+        try {
+            await request.post("/robot/stop", { id });
+            Message.success("已暂停");
         } catch (error) {
             Message.error(error.message);
         }
