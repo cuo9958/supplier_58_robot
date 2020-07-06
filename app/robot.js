@@ -99,6 +99,7 @@ routers.post("/del", async function (ctx) {
         };
     } else {
         await TaskModel.del(id * 1);
+        TaskReduce.del(id * 1);
         ctx.body = {
             code: 1,
         };

@@ -78,6 +78,11 @@ class TaskRobot {
         await ResultModel.insert(model);
         await sleep(Math.round(Math.random() * 3000 + 1000));
     }
+
+    stop() {
+        if (this.timer) this.timer.stop();
+        task_list.delete(this.id);
+    }
 }
 
 module.exports = {
@@ -147,5 +152,11 @@ module.exports = {
         }
         task_list.set(model.id, task);
         return task;
+    },
+    del(id) {
+        const model = task_list.get(id);
+        if (model) {
+            model.stop();
+        }
     },
 };
