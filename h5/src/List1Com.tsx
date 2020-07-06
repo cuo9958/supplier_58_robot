@@ -67,6 +67,8 @@ export default class extends React.Component<any, IState> {
                         <option value="1003400020005">已取消</option>
                     </select>
                     <input id="cleaningWorkerName" onChange={(e) => this.setModel("cleaningWorkerName", e)} placeholder="保洁人员" type="text" className="form-control" />
+                </div>
+                <div className="ppm">
                     <select id="timeType" onChange={(e) => this.setModel("timeType", e)} className="form-control">
                         <option value="1">预计保洁日期</option>
                         <option value="2">预计上门时间</option>
