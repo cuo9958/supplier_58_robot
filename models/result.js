@@ -86,6 +86,11 @@ const Result = db.define(
             defaultValue: "",
             comment: "小区信息",
         },
+        zukelist: {
+            type: Sequelize.STRING,
+            defaultValue: "",
+            comment: "租客列表",
+        },
         //=================日常的字段
         qiwang: {
             type: Sequelize.STRING,

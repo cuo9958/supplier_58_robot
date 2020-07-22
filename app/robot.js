@@ -138,6 +138,7 @@ routers.get("/download/:id", async function (ctx) {
                 "上门打卡时间",
                 "保洁完成时间",
                 "保洁费用",
+                "租客名单",
             ]);
             list.forEach((item) => {
                 mp.push([
@@ -154,6 +155,7 @@ routers.get("/download/:id", async function (ctx) {
                     item.riqi4,
                     item.riqi5,
                     item.feiyong,
+                    item.zukelist,
                 ]);
             });
         } else {

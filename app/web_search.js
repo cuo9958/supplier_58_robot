@@ -144,11 +144,21 @@ async function getDetail1(orderCode = "") {
     const riqi5 = jieguo.find("td").eq(1).find("h5").text().trim();
     //保洁费用
     const feiyong = jieguo.find("td").eq(2).find("h5").text().trim();
+
+    const zuke = $(".dePart").eq(2);
+    const list = zuke.find(".rentertable tbody tr");
+    let zukelist = "";
+    list.each((item) => {
+        zukelist += $(list[item]).find("td").eq(1).text().trim();
+        zukelist += $(list[item]).find("td").eq(2).text().trim();
+        zukelist += ";";
+    });
     return {
         riqi5,
         feiyong,
         riqi4,
-        xiaoqu
+        xiaoqu,
+        zukelist,
     };
 }
 //日常详情
