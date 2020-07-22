@@ -18,7 +18,7 @@ export default class extends React.Component<any, IState> {
         {
             label: "id",
             prop: "id",
-            width: 50,
+            width: 70,
         },
         {
             label: "标题",
