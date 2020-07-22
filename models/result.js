@@ -81,6 +81,11 @@ const Result = db.define(
             defaultValue: "",
             comment: "保洁费用",
         },
+        xiaoqu: {
+            type: Sequelize.STRING,
+            defaultValue: "",
+            comment: "小区信息",
+        },
         //=================日常的字段
         qiwang: {
             type: Sequelize.STRING,

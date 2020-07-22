@@ -131,8 +131,12 @@ async function getlist2(params = "") {
 async function getDetail1(orderCode = "") {
     const res = await getHtml("http://gys.1zu.com/cleaningWeek/detailCleaningWeekPlanItem.htm?orderCode=" + orderCode);
     const $ = cheerio.load(res.data);
-    const gongdan = $(".dePart").eq(1);
 
+    const xinxi = $(".dePart").eq(0);
+    //小区地址
+    const xiaoqu = xinxi.find(".deTable td").eq(1).find("h5").text().trim();
+
+    const gongdan = $(".dePart").eq(1);
     //上门打开时间
     const riqi4 = gongdan.find(".deTable td").eq(6).find("h5").text().trim();
     const jieguo = $(".dePart").eq(3);
@@ -144,6 +148,7 @@ async function getDetail1(orderCode = "") {
         riqi5,
         feiyong,
         riqi4,
+        xiaoqu
     };
 }
 //日常详情
