@@ -40,7 +40,7 @@ export default class extends React.Component<any, IState> {
                 houseCode: "",
                 status: "",
                 cleaningWorkerName: "",
-                timeType: "",
+                timeType: "1",
                 queryStartTime: "",
                 queryEndTime: "",
                 projectName: "",

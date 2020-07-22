@@ -27,7 +27,7 @@ export default class extends React.Component<any, IState> {
                 clnHouseCode: "",
                 clnOrderState: "",
                 cleaningWorkerName: "",
-                timeType: "",
+                timeType: "1",
                 queryStartTime: "",
                 queryEndTime: "",
                 clnProjectName: "",
