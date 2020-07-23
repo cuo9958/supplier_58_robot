@@ -20,7 +20,7 @@ export default class extends React.Component<IProps, IState> {
         this.state = {
             codeUrl: "/api/robot/code",
             loginModel: {
-                username: "1022000000",
+                username: "1023000000",
                 password: "",
                 checkCode: "",
             },
