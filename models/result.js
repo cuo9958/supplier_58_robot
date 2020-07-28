@@ -137,6 +137,11 @@ const Result = db.define(
             defaultValue: "",
             comment: "保洁费用",
         },
+        luru: {
+            type: Sequelize.STRING,
+            defaultValue: "",
+            comment: "保洁费用",
+        },
     },
     {
         freezeTableName: true,

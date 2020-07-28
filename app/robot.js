@@ -176,6 +176,7 @@ routers.get("/download/:id", async function (ctx) {
                 "保洁完成时间",
                 "保洁预估费用",
                 "保洁费用",
+                "录入时间",
             ]);
             list.forEach((item) => {
                 mp.push([
@@ -195,6 +196,7 @@ routers.get("/download/:id", async function (ctx) {
                     item.wanc,
                     item.yugu,
                     item.feiyong2,
+                    item.luru,
                 ]);
             });
         }
