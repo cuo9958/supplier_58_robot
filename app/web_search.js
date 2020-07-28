@@ -176,6 +176,8 @@ async function getDetail2(clnOrderId = "") {
     const baojieleixing = baojiedan.find("td").eq(1).find("h5").text().trim();
     //预估费用
     const yugu = baojiedan.find("td").eq(2).find("h5").text().trim();
+    //录入时间
+    const luru = baojiedan.find("td").eq(4).find("h5").text().trim();
     //上门打卡时间
     const shangmen = baojiedan.find("td").eq(11).find("h5").text().trim();
 
@@ -192,6 +194,7 @@ async function getDetail2(clnOrderId = "") {
         yugu,
         wanc,
         feiyong2,
+        luru,
     };
 }
 async function isLogin() {
